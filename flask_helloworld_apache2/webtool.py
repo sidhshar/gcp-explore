@@ -291,8 +291,9 @@ def eventwebhook():
 
 	# request.json - ['result']['_raw']
 	# request_data - ipaddress
-	print 'eventwebhook request.json: ',request.json
-	print 'eventwebhook request_data: ',request_data
+	#print 'eventwebhook request.json: ',request.json
+	#print 'eventwebhook request_data: ',request_data
+	app.logger.info('request.json: %s     :::::::       request_data: %s' % (request.json, request_data))
 
 	splunk_webhook_response = {}
 	if request.json:
@@ -316,7 +317,8 @@ def eventwebhook():
 	if not result:
 		user_response.update( {'status': 'failure (if not result)'} )
 	
-	print 'user_response: %s' % (user_response,)
+	#print 'user_response: %s' % (user_response,)
+	app.logger.info('user_response: %s' % (user_response,))
 
 	return jsonify(user_response)
 

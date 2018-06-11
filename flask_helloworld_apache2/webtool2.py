@@ -316,6 +316,19 @@ def eventwebhook():
 
 	return jsonify(user_response)
 
+# ------------------------------------------------------- #
+
+@app.before_first_request
+def init():
+	phhandle = ProcessHashHandler()
+	handle = EventProcessor()
+	handle.create_table()
+
+	logHandler = RotatingFileHandler('applog.log', maxBytes=1024)
+	logHandler.setLevel(logging.INFO)
+	app.logger.setLevel(logging.INFO)
+	app.logger.addHandler(logHandler)
+
 
 # ------------------------------------------------------- #
 

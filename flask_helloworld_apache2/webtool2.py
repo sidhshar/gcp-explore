@@ -11,7 +11,8 @@ from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 
-
+PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
+DBSTORE = os.path.join(PROJECT_ROOT, 'istiodemo.db')
 
 # ------------------ LOCALSETTINGS ---------------------- #
 
@@ -66,7 +67,10 @@ UPDATE_SQL_IS_VA = '''UPDATE EVENT_PROCESSOR
 
 class EventProcessor(object):
 	def __init__(self):
-		self.connection = sqlite3.connect('istiodemo.db')
+		#self.connection = sqlite3.connect(DBSTORE)
+		# In memory
+		self.connection = sqlite3.connect(":memory:")
+
 		self.connection.isolation_level = None #If you want autocommit mode, then set isolation_level to None.
 		self.cursor = self.connection.cursor()
 
@@ -198,7 +202,7 @@ def perform_splunk_alert_action(reqjson):
 	if not ph:
 		return {'status': False, 'reason': 'ph/pph not found: %s %s' % (ph, pph)}
 
-	response = phhandle.get_version_by_ph(ph)
+	response = app.phhandle.get_version_by_ph(ph)
 	app.logger.info('In perform_splunk_alert_action response: %s' % (response,))
 
 	return response
@@ -238,7 +242,7 @@ def make_cpe_format(file_version, file_description):
 @app.route('/performvulassessment', methods=['GET'])
 def performvulnerabilityassessment():
 
-	handle = EventProcessor()
+	#handle = EventProcessor()
 	user_response = {}
 	waiting_time = 0
 
@@ -252,19 +256,19 @@ def performvulnerabilityassessment():
 	remote_addr = get_remote_address(request)
 	user_response['request']['remote_address'] = remote_addr
 
-	handle.clear_current_remoteaddr_entries(remote_addr)
+	app.ephandle.clear_current_remoteaddr_entries(remote_addr)
 
-	handle.create_entry_of_incoming_request(remote_addr, custom_header)
+	app.ephandle.create_entry_of_incoming_request(remote_addr, custom_header)
 
 	enable_header = False
 	while (waiting_time <= WAIT_TIME_IN_SECONDS):
-		results = handle.is_incoming_trigger_recieved(remote_addr)
+		results = app.ephandle.is_incoming_trigger_recieved(remote_addr)
 		if results:
 			# TODO: Ensure that we always get back just 1 result. Currently assuming
 			itresult = results[0]
-			if handle.is_request_allowed_by_vulassess(itresult):
+			if app.ephandle.is_request_allowed_by_vulassess(itresult):
 				enable_header = True
-			handle.release_wait(results)
+			app.ephandle.release_wait(results)
 			break
 		time.sleep(SLEEP_TIME_SLICE)
 		waiting_time += SLEEP_TIME_SLICE
@@ -308,7 +312,7 @@ def eventwebhook():
 
 	cvss = get_cvss_from_cpe(cpe_format)
 
-	result = handle.update_based_on_incomingtrigger(ipaddress, cvss)
+	result = app.ephandle.update_based_on_incomingtrigger(ipaddress, cvss)
 	if not result:
 		user_response.update( {'status': 'failure (if not result)'} )
 	
@@ -320,30 +324,31 @@ def eventwebhook():
 
 @app.before_first_request
 def init():
-	phhandle = ProcessHashHandler()
-	handle = EventProcessor()
-	handle.create_table()
+	app.phhandle = ProcessHashHandler()
+	app.ephandle = EventProcessor()
+	app.ephandle.create_table()
 
-	logHandler = RotatingFileHandler('applog.log', maxBytes=1024)
+	logHandler = RotatingFileHandler('logs/applog.log', maxBytes=1024)
 	logHandler.setLevel(logging.INFO)
 	app.logger.setLevel(logging.INFO)
 	app.logger.addHandler(logHandler)
+
 
 
 # ------------------------------------------------------- #
 
 if __name__ == '__main__':
-	phhandle = ProcessHashHandler()
-	handle = EventProcessor()
-	handle.create_table()
+	#phhandle = ProcessHashHandler()
+	#handle = EventProcessor()
+	#handle.create_table()
 
-	logHandler = RotatingFileHandler('applog.log', maxBytes=1024)
-	logHandler.setLevel(logging.INFO)
-	app.logger.setLevel(logging.INFO)
-	app.logger.addHandler(logHandler)
+	#logHandler = RotatingFileHandler('logs/applog.log', maxBytes=1024)
+	#logHandler.setLevel(logging.INFO)
+	#app.logger.setLevel(logging.INFO)
+	#app.logger.addHandler(logHandler)
 
 	#app.run(host='0.0.0.0', port=9090)
 	app.run()
 
-	handle.close()
+	#handle.close()
 

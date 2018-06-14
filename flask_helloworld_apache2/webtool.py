@@ -248,6 +248,8 @@ def performvulnerabilityassessment():
 	user_response = {}
 	waiting_time = 0
 
+	app.logger.info('/performvulassessment request.headers: %s' % (request.headers,))
+
 	# Get the User Agent
 	custom_header = request.headers.get(HEADER_OF_INTEREST)
 	user_response['result'] = {}

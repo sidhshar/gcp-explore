@@ -13,9 +13,9 @@ app = Flask(__name__)
 
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 DBSTORE = os.path.join(PROJECT_ROOT, 'istiodemo.db')
-HOMEDIR = os.path.expanduser('~')
-VT_JSON_STORE = os.path.join(PROJECT_ROOT, 'json_store_vt')
-SPLUNK_JSON_STORE = os.path.join(PROJECT_ROOT, 'json_store_splunk')
+LOG_DIR = os.path.expanduser('/var/log/istiopoc')
+VT_JSON_STORE = os.path.join(LOG_DIR, 'json_store_vt')
+SPLUNK_JSON_STORE = os.path.join(LOG_DIR, 'json_store_splunk')
 
 # ------------------ LOCALSETTINGS ---------------------- #
 
@@ -344,11 +344,12 @@ def init():
 
 # ------------------------------------------------------- #
 
-#P1 TODOs:
+# P1 TODOs:
 # 1. Log store create directories? Their permission should be www-data
-# mkdir json_store_vt
-# mkdir json_store_splunk
-# sudo chown www-data json_store_*
+# mkdir /var/log/istiopoc
+# mkdir /var/log/istiopoc/json_store_vt
+# mkdir /var/log/istiopoc/json_store_splunk
+# sudo chown -R www-data /var/log/istiopoc
 
 
 

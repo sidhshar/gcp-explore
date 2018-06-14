@@ -74,25 +74,56 @@ class EventProcessor(object):
 		self.connection = sqlite3.connect(":memory:")
 
 		self.connection.isolation_level = None #If you want autocommit mode, then set isolation_level to None.
-		self.cursor = self.connection.cursor()
+		#self.cursor = self.connection.cursor()
+
+	def execute_parameterised_query_via_cursor(self, query, parameters):
+		cursor = self.connection.cursor()
+		cursor.execute(query, parameters)
+		cursor.close()
+
+	def execute_parameterised_query_via_cursor_with_results(self, query, parameters):
+		cursor = self.connection.cursor()
+		cursor.execute(query, parameters)
+		results = cursor.fetchall()
+		cursor.close()
+		return results
+
+	def execute_query_via_cursor(self, query):
+		cursor = self.connection.cursor()
+		cursor.execute(query)
+		cursor.close()
+
+	# def execute_query_via_cursor_with_results(self, query):
+	# 	cursor = self.connection.cursor()
+	# 	cursor.execute(query)
+	# 	return cursor
 
 	def create_table(self):
+	# Query 1
 		# Create table
-		self.cursor.execute('''CREATE TABLE IF NOT EXISTS EVENT_PROCESSOR
-             	 	(ID INTEGER PRIMARY KEY, REMOTE_ADDR text, ua text, ts timestamp, state int, incomingstate int, vulassessment int)''')
+		# self.cursor.execute('''CREATE TABLE IF NOT EXISTS EVENT_PROCESSOR
+  #            	 	(ID INTEGER PRIMARY KEY, REMOTE_ADDR text, ua text, ts timestamp, state int, incomingstate int, vulassessment int)''')
+		create_query = '''CREATE TABLE IF NOT EXISTS EVENT_PROCESSOR
+			(ID INTEGER PRIMARY KEY, REMOTE_ADDR text, ua text, ts timestamp, state int, incomingstate int, vulassessment int)'''
+		self.execute_query_via_cursor(create_query)
 
 	def perform_select_on_state(self, remoteaddr):
+		# Query 2
 		selectvalues = (remoteaddr, 0)
-		self.cursor.execute('SELECT * FROM EVENT_PROCESSOR WHERE REMOTE_ADDR=? AND state=? ORDER BY ts', selectvalues)
-		results = self.cursor.fetchall()
+		select_query = 'SELECT * FROM EVENT_PROCESSOR WHERE REMOTE_ADDR=? AND state=? ORDER BY ts'
+		#self.cursor.execute('SELECT * FROM EVENT_PROCESSOR WHERE REMOTE_ADDR=? AND state=? ORDER BY ts', selectvalues)
+		results = self.execute_parameterised_query_via_cursor_with_results(select_query, selectvalues)
+		#results = self.cursor.fetchall()
 		app.logger.info('00 SELECT BY REMOTE_ADDR: %s STATE: %s, results: %s' % (remoteaddr, 0, results))
 		return results
 
 	def release_wait(self, results):
+		# Query 3
 		for each_result in results:
 			app.logger.info('00 UPDATE state: 1 for ID: %s' % (each_result[0],))
 			updatevalues = (1, each_result[0])
-			self.cursor.execute(UPDATE_SQL_STATE, updatevalues)
+			#self.cursor.execute(UPDATE_SQL_STATE, updatevalues)
+			self.execute_parameterised_query_via_cursor(UPDATE_SQL_STATE, updatevalues)
 
 	def clear_current_remoteaddr_entries(self, remoteaddr):
 		results = self.perform_select_on_state(remoteaddr)
@@ -100,15 +131,23 @@ class EventProcessor(object):
 		self.release_wait(results)
 
 	def create_entry_of_incoming_request(self, remoteaddr, useragent):
+		# Query 4
 		app.logger.info('Step 1. Creating entry for incoming request')
 		now = datetime.datetime.now()
-		self.cursor.execute("INSERT INTO EVENT_PROCESSOR(REMOTE_ADDR, ua, ts, state, incomingstate, vulassessment) values (?, ?, ?, ?, ?, ?)", (remoteaddr, useragent, now, 0, 0, 0))
+		insert_query = "INSERT INTO EVENT_PROCESSOR(REMOTE_ADDR, ua, ts, state, incomingstate, vulassessment) values (?, ?, ?, ?, ?, ?)"
+		insert_values = (remoteaddr, useragent, now, 0, 0, 0)
+		self.execute_parameterised_query_via_cursor(insert_query, insert_values)
+
+		#self.cursor.execute("INSERT INTO EVENT_PROCESSOR(REMOTE_ADDR, ua, ts, state, incomingstate, vulassessment) values (?, ?, ?, ?, ?, ?)", (remoteaddr, useragent, now, 0, 0, 0))
 		app.logger.info('INSERT REMOTE_ADDR: %s, ua: %s' % (remoteaddr, useragent))
 
 	def perform_select_on_incomingstate(self, remoteaddr):
+		# Query 5
 		selectvalues = (remoteaddr, 1, 0)
-		self.cursor.execute('SELECT * FROM EVENT_PROCESSOR WHERE REMOTE_ADDR=? AND incomingstate=? AND state=? ORDER BY ts', selectvalues)
-		results = self.cursor.fetchall()
+		select_query = 'SELECT * FROM EVENT_PROCESSOR WHERE REMOTE_ADDR=? AND incomingstate=? AND state=? ORDER BY ts'
+		#self.cursor.execute('SELECT * FROM EVENT_PROCESSOR WHERE REMOTE_ADDR=? AND incomingstate=? AND state=? ORDER BY ts', selectvalues)
+		results = self.execute_parameterised_query_via_cursor_with_results(select_query, selectvalues)
+		#results = self.cursor.fetchall()
 		app.logger.info('11 SELECT BY REMOTE_ADDR: %s incomingstate: %s, state: %s, results: %s' % (remoteaddr, 1, 0, results))
 		return results
 
@@ -118,12 +157,14 @@ class EventProcessor(object):
 		return results
 
 	def update_based_on_incomingtrigger(self, remoteaddr, cvss):
+		# Query 6
 		results = self.perform_select_on_state(remoteaddr)
 		app.logger.info('Step 3. In update_based_on_incomingtrigger results: %s remoteaddr: %s' % (results, remoteaddr))
 		if results:
 			for each_result in results:
 				updatevalues = (1, cvss, each_result[0])
-				self.cursor.execute(UPDATE_SQL_IS_VA, updatevalues)
+				#self.cursor.execute(UPDATE_SQL_IS_VA, updatevalues)
+				self.execute_parameterised_query_via_cursor(UPDATE_SQL_IS_VA, updatevalues)
 				app.logger.info('11 UPDATE incomingstate: 1, vulassessment: %s for ID: %s' % (cvss, each_result[0],))
 			return True
 		else:

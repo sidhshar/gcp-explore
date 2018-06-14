@@ -257,7 +257,9 @@ def performvulnerabilityassessment():
 	user_response['request']['custom_header'] = custom_header
 
 	# Get the Remote Address
-	remote_addr = get_remote_address(request)
+	#remote_addr = get_remote_address(request)
+	remote_addr = request.headers['X-Initiator-Remote-Addr-1'].split(',')[0]
+
 	user_response['request']['remote_address'] = remote_addr
 
 	app.ephandle.clear_current_remoteaddr_entries(remote_addr)
@@ -314,7 +316,8 @@ def eventwebhook():
 	user_response.update( {'splunk_webhook_response' : splunk_webhook_response } )
 
 	# Based on incoming trigger request, decide and update whether the other header needs to be populated
-	ipaddress = request_data.get('ipaddress')
+	ipaddress = request_json['result']['host']
+	#ipaddress = request_data.get('ipaddress')
 
 	cvss = get_cvss_from_cpe(cpe_format)
 

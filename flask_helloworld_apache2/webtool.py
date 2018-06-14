@@ -13,10 +13,13 @@ app = Flask(__name__)
 
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 DBSTORE = os.path.join(PROJECT_ROOT, 'istiodemo.db')
+HOMEDIR = os.path.expanduser('~')
+VT_JSON_STORE = os.path.join(PROJECT_ROOT, 'json_store_vt')
+SPLUNK_JSON_STORE = os.path.join(PROJECT_ROOT, 'json_store_splunk')
 
 # ------------------ LOCALSETTINGS ---------------------- #
 
-HEADER_OF_INTEREST = 'Custom User Agent'
+HEADER_OF_INTEREST = 'User-Agent'
 CUSTOM_HEADER_NAME = 'x-is-allowed'
 CUSTOM_HEADER_STATE_ON = 'enabled'
 CUSTOM_HEADER_STATE_OFF = 'disabled'
@@ -26,10 +29,9 @@ CVSS_THRESHOLD_FOR_REJECTION = 7
 SAMPLE_CVSS_VALUE = 8
 
 VT_URL = 'https://www.virustotal.com/ui/search?query=%s'
-VT_JSON_STORE = '/users/sidhshar/Downloads/store/vt_store'
 VT_CALL_ENABLE = False
 VT_TEST_DATA = {'file_version': '47.0.2526.111', 'file_description': 'Google Chrome'}
-SPLUNK_JSON_STORE = '/users/sidhshar/Downloads/store/splunk_store'
+
 
 # ------------------ SQLITE3 ---------------------- #
 
@@ -211,7 +213,7 @@ def perform_splunk_alert_action(reqjson):
 # ------------------------------------------------------- #
 
 def write_json_file(filepath, data):
-	ts = str(datetime.now()).replace(' ','-').replace(':','-').replace('.','-')
+	ts = str(datetime.datetime.now()).replace(' ','-').replace(':','-').replace('.','-')
 	with open('%s%s%s.json' % (filepath, os.sep, ts,), 'w') as outfile:
 		json.dump(data, outfile)
 
@@ -288,16 +290,17 @@ def eventwebhook():
 	cpe_format = None
 	user_response = {}
 	request_data = json.loads(request.data)
+	request_json = request.json
 
 	# request.json - ['result']['_raw']
 	# request_data - ipaddress
 	#print 'eventwebhook request.json: ',request.json
 	#print 'eventwebhook request_data: ',request_data
-	app.logger.info('request.json: %s     :::::::       request_data: %s' % (request.json, request_data))
+	app.logger.info('request.json: %s     :::::::       request_data: %s' % (request_json, request_data))
 
 	splunk_webhook_response = {}
 	if request.json:
-		splunk_webhook_response = perform_splunk_alert_action(request.json)
+		splunk_webhook_response = perform_splunk_alert_action(request_json)
 		if not splunk_webhook_response['status']:
 			pass
 		else:
@@ -305,7 +308,7 @@ def eventwebhook():
 			file_description = splunk_webhook_response['file_description']
 			cpe_format = make_cpe_format(file_version, file_description)
 	else:
-		splunk_webhook_response = { 'request.json': request.json, 'status': 'Failure' }
+		splunk_webhook_response = { 'request.json': request_json, 'status': 'Failure' }
 	user_response.update( {'splunk_webhook_response' : splunk_webhook_response } )
 
 	# Based on incoming trigger request, decide and update whether the other header needs to be populated
@@ -334,6 +337,17 @@ def init():
 	logHandler.setLevel(logging.INFO)
 	app.logger.setLevel(logging.INFO)
 	app.logger.addHandler(logHandler)
+
+
+
+# ------------------------------------------------------- #
+
+#P1 TODOs:
+# 1. Log store create directories? Their permission should be www-data
+# mkdir json_store_vt
+# mkdir json_store_splunk
+# sudo chown www-data json_store_*
+
 
 
 

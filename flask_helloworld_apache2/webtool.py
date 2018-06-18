@@ -20,9 +20,9 @@ SPLUNK_JSON_STORE = os.path.join(LOG_DIR, 'json_store_splunk')
 # ------------------ LOCALSETTINGS ---------------------- #
 
 HEADER_OF_INTEREST = 'User-Agent'
-CUSTOM_HEADER_NAME = 'x-is-allowed'
-CUSTOM_HEADER_STATE_ON = 'enabled'
-CUSTOM_HEADER_STATE_OFF = 'disabled'
+CUSTOM_HEADER_NAME = 'x_is_enabled'
+CUSTOM_HEADER_STATE_ON = True
+CUSTOM_HEADER_STATE_OFF = False
 WAIT_TIME_IN_SECONDS = 20
 SLEEP_TIME_SLICE = 0.5
 CVSS_THRESHOLD_FOR_REJECTION = 7
@@ -296,18 +296,18 @@ def performvulnerabilityassessment():
 
 	app.logger.info('/performvulassessment request.headers: %s' % (request.headers,))
 
-	if get_result_to_test():
-		user_response = { 'x_is_enabled': True }
-	else:
-		user_response = { 'x_is_enabled': False }
-	print 'test user_response: ',user_response
-	return jsonify(user_response)
+	# if get_result_to_test():
+	# 	user_response = { 'x_is_enabled': True }
+	# else:
+	# 	user_response = { 'x_is_enabled': False }
+	# print 'test user_response: ',user_response
+	# return jsonify(user_response)
 
 	# Get the User Agent
 	custom_header = request.headers.get(HEADER_OF_INTEREST)
 	user_response['result'] = {}
 	user_response['request'] = {}
-	user_response['request']['custom_header'] = custom_header
+	user_response['request'][HEADER_OF_INTEREST] = custom_header
 
 	# Get the Remote Address
 	#remote_addr = get_remote_address(request)

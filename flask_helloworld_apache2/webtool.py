@@ -23,13 +23,14 @@ HEADER_OF_INTEREST = 'User-Agent'
 CUSTOM_HEADER_NAME = 'x-is-allowed'
 CUSTOM_HEADER_STATE_ON = 'enabled'
 CUSTOM_HEADER_STATE_OFF = 'disabled'
-WAIT_TIME_IN_SECONDS = 5
+WAIT_TIME_IN_SECONDS = 20
 SLEEP_TIME_SLICE = 0.5
 CVSS_THRESHOLD_FOR_REJECTION = 7
 SAMPLE_CVSS_VALUE = 8
 
 VT_URL = 'https://www.virustotal.com/ui/search?query=%s'
 VT_CALL_ENABLE = False
+TEST_FLAG_STATE = True
 VT_TEST_DATA = {'file_version': '47.0.2526.111', 'file_description': 'Google Chrome'}
 
 
@@ -77,6 +78,7 @@ class EventProcessor(object):
 		#self.cursor = self.connection.cursor()
 
 	def execute_parameterised_query_via_cursor(self, query, parameters):
+		# TODO: Create cursor pool
 		cursor = self.connection.cursor()
 		cursor.execute(query, parameters)
 		cursor.close()
@@ -280,6 +282,9 @@ def make_cpe_format(file_version, file_description):
 	# TODO
 	pass
 
+def get_result_to_test(waittime = 2):#waittime in secs
+	time.sleep(waittime)
+	return TEST_FLAG_STATE
 
 # ------------------------------------------------------- #
 @app.route('/performvulassessment', methods=['GET'])
@@ -290,6 +295,11 @@ def performvulnerabilityassessment():
 	waiting_time = 0
 
 	app.logger.info('/performvulassessment request.headers: %s' % (request.headers,))
+
+	if get_result_to_test():
+		return jsonify({ 'x_is_enabled': True })
+	else:
+		return jsonify({ 'x_is_enabled': False })
 
 	# Get the User Agent
 	custom_header = request.headers.get(HEADER_OF_INTEREST)
@@ -372,6 +382,18 @@ def eventwebhook():
 	return jsonify(user_response)
 
 # ------------------------------------------------------- #
+
+@app.route('/', methods=['GET'])
+def serverbaseurl():
+	log_me_dict = { 'invoked_url': '/', 'headers': request.headers }
+	user_response = { 'response': 'Unauthorized action. Would be reported!' }
+	log_me_dict.update(user_response)
+	app.logger.info('log_me_dict: %s' % (log_me_dict,))
+	return jsonify(user_response)
+
+
+# ------------------------------------------------------- #
+
 
 @app.before_first_request
 def init():

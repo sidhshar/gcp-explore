@@ -73,7 +73,6 @@ class EventProcessor(object):
 		#self.connection = sqlite3.connect(DBSTORE)
 		# In memory
 		self.connection = sqlite3.connect(":memory:")
-
 		self.connection.isolation_level = None #If you want autocommit mode, then set isolation_level to None.
 		#self.cursor = self.connection.cursor()
 
@@ -296,12 +295,12 @@ def performvulnerabilityassessment():
 
 	app.logger.info('/performvulassessment request.headers: %s' % (request.headers,))
 
-	# if get_result_to_test():
-	# 	user_response = { 'x_is_enabled': True }
-	# else:
-	# 	user_response = { 'x_is_enabled': False }
-	# print 'test user_response: ',user_response
-	# return jsonify(user_response)
+	if get_result_to_test():
+		user_response = { 'x_is_enabled': True }
+	else:
+		user_response = { 'x_is_enabled': False }
+	print 'test user_response: ',user_response
+	return jsonify(user_response)
 
 	# Get the User Agent
 	custom_header = request.headers.get(HEADER_OF_INTEREST)

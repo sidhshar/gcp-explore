@@ -24,7 +24,7 @@ SPLUNK_JSON_STORE = os.path.join(LOG_DIR, 'json_store_splunk')
 
 # ------------------ LOCALSETTINGS ---------------------- #
 
-HEADER_OF_INTEREST = 'User-Agent'
+#HEADER_OF_INTEREST = 'User-Agent'
 INSERT_HEADER_NAME = 'x_is_enabled'
 # CUSTOM_HEADER_STATE_ON = True
 # CUSTOM_HEADER_STATE_OFF = False
@@ -41,7 +41,8 @@ INSERT_HEADER_NAME = 'x_is_enabled'
 
 # ------------------ SQLITE3 ---------------------- #
 
-DBSTORE = os.path.join(PROJECT_ROOT, 'istiodemo.db')
+#DBSTORE = os.path.join(PROJECT_ROOT, 'istiodemo.db')
+DBSTORE = '/var/data/istiodemo.db'
 
 # ------------------ SQL ---------------------- #
 

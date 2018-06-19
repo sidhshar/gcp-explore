@@ -20,6 +20,11 @@ class DBHandler(object):
 		cursor = self.connection.cursor()
 		cursor.execute(query)
 		cursor.close()
+	def execute_parameterised_query_via_cursor(self, query, parameters):
+		# TODO: Create cursor pool
+		cursor = self.connection.cursor()
+		cursor.execute(query, parameters)
+		cursor.close()
 	def execute_parameterised_query_via_cursor_with_results(self, query, parameters):
 		cursor = self.connection.cursor()
 		cursor.execute(query, parameters)

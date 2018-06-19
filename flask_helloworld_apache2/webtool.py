@@ -35,15 +35,17 @@ def performvulnerabilityassessment():
 	app.logger.info('/performvulassessment request.headers: %s' % (request.headers,))
 
 	# Get the User Agent
-	custom_header = request.headers.get(ls.HEADER_OF_INTEREST)
+	#custom_header = request.headers.get(ls.HEADER_OF_INTEREST)
+	user_response = {}
 	user_response['result'] = {}
 	user_response['request'] = {}
-	user_response['request'][HEADER_OF_INTEREST] = custom_header
+	#user_response['request'][ls.HEADER_OF_INTEREST] = custom_header
 
 	# Get the Remote Address
 	remote_addr = request.headers['X-Initiator-Remote-Addr-1'].split(',')[0]
 	intiator_ua = request.headers['X-Initiator-Ua']
 	user_response['request']['remote_address'] = remote_addr
+	user_response['request']['X-Initiator-Ua'] = intiator_ua
 
 	step1_response = invoke_step1(remote_addr, intiator_ua)
 
@@ -125,8 +127,8 @@ def init():
 # mkdir /var/log/istiopoc/json_store_splunk
 # sudo chown -R www-data /var/log/istiopoc
 
-
-
+# mkdir /var/data
+# chown -R www-data /var/data
 
 # ------------------------------------------------------- #
 

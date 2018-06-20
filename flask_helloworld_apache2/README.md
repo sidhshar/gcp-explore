@@ -31,15 +31,19 @@ cd gcp-explore/flask_helloworld_apache2
 sudo mkdir /var/www/flask
 
 sudo mkdir /var/log/istiopoc
+
 sudo mkdir /var/log/istiopoc/json_store_vt
+
 sudo mkdir /var/log/istiopoc/json_store_splunk
+
 sudo chown -R www-data /var/log/istiopoc
 
 sudo mkdir /var/data
+
 sudo chown -R www-data /var/data
 
-
 sudo cp webtool.* /var/www/flask/
+
 sudo cp *.py /var/www/flask/
 
 sudo cp 000-default.conf /etc/apache2/sites-available/

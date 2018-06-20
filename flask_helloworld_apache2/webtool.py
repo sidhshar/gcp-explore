@@ -111,7 +111,7 @@ def serverbaseurl():
 @app.before_first_request
 def init():
 
-	logHandler = RotatingFileHandler('logs/applog.log', maxBytes=1024)
+	logHandler = RotatingFileHandler(ls.APP_LOG, maxBytes=1024)
 	logHandler.setLevel(logging.INFO)
 	app.logger.setLevel(logging.INFO)
 	app.logger.addHandler(logHandler)

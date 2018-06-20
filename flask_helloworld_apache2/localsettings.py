@@ -18,7 +18,9 @@ WORKFLOW_STATES_VERBOSE = { 1: RECEIVED_FROM_ISTIO, 2: RECIEVED_WEBHOOK_TRIGGER,
 PROJECT_ROOT = os.path.dirname(os.path.realpath(__file__))
 
 
-LOG_DIR = os.path.expanduser('/var/log/istiopoc')
+#LOG_DIR = os.path.expanduser('/var/log/istiopoc')
+LOG_DIR = '/var/log/istiopoc'
+APP_LOG = os.path.join(LOG_DIR, 'applog.log')
 VT_JSON_STORE = os.path.join(LOG_DIR, 'json_store_vt')
 SPLUNK_JSON_STORE = os.path.join(LOG_DIR, 'json_store_splunk')
 

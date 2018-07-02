@@ -22,4 +22,7 @@ if __name__ == '__main__':
 
     for ph in phs:
         response = run(ph)
-        print("response received: %s" % (response.cvss,))
+        if response:
+        	print("response received: %s" % (response.cvss,))
+        else:
+        	print "No match found for %s" % (ph,)

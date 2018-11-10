@@ -7,3 +7,5 @@ Code repos for the following tasks on GCP:
 
 2. Invoke grpc stub calls from python
 
+3. Wordpress One click deployment guides
+
